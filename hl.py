@@ -1,14 +1,14 @@
 from PIL import Image, ImageColor
 
 # CONST
-r0 = 0
-r1 = 0
-r2 = 0
-r3 = 0
-r4 = 0
-# VAR
-r5 = 0
+r0 = 0  # offsetX
+r1 = 0  # offsetY
+r2 = 0  # x0
+r3 = 0  # y0
+r4 = 0  # x1
+r5 = 0  # y1
 r6 = 0
+# VAR
 r7 = 0
 r9 = 0
 r10 = 0
