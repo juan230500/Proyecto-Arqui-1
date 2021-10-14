@@ -1,18 +1,5 @@
 from PIL import Image, ImageColor
 
-# CONST
-r0 = 0  # offsetX
-r1 = 0  # offsetY
-r2 = 0  # x0
-r3 = 0  # y0
-r4 = 0  # x1
-r5 = 0  # y1
-r6 = 0
-# VAR
-r7 = 0
-r9 = 0
-r10 = 0
-
 
 def absolute(x):
     if x > 0:
@@ -21,7 +8,17 @@ def absolute(x):
         return -x
 
 
+def getCoords(x, y):
+    coords = 1 << x
+    tmp = y
+    tmp = tmp << 2
+    tmp = tmp + y
+    coords = coords << tmp
+    return coords
+
+
 def drawCircle(xc, yc, x, y):
+    global resultDraw
     # result.append((xc+x, yc+y))
     # result.append((xc-x, yc+y))
     # result.append((xc+x, yc-y))
@@ -30,69 +27,14 @@ def drawCircle(xc, yc, x, y):
     # result.append((xc-y, yc+x))
     # result.append((xc+y, yc-x))
     # result.append((xc-y, yc-x))
-    coords = xc + x
-    coords = coords + offsetX
-    tmp = yc + y
-    tmp = tmp + offsetY
-    tmp = tmp << 8
-    coords = coords + tmp
-    memmory[coords] = 1
-
-    coords = xc - x
-    coords = coords + offsetX
-    tmp = yc + y
-    tmp = tmp + offsetY
-    tmp = tmp << 8
-    coords = coords + tmp
-    memmory[coords] = 1
-
-    coords = xc + x
-    coords = coords + offsetX
-    tmp = yc - y
-    tmp = tmp + offsetY
-    tmp = tmp << 8
-    coords = coords + tmp
-    memmory[coords] = 1
-
-    coords = xc - x
-    coords = coords + offsetX
-    tmp = yc - y
-    tmp = tmp + offsetY
-    tmp = tmp << 8
-    coords = coords + tmp
-    memmory[coords] = 1
-
-    coords = xc+y
-    coords = coords + offsetX
-    tmp = yc+x
-    tmp = tmp + offsetY
-    tmp = tmp << 8
-    coords = coords + tmp
-    memmory[coords] = 1
-
-    coords = xc-y
-    coords = coords + offsetX
-    tmp = yc+x
-    tmp = tmp + offsetY
-    tmp = tmp << 8
-    coords = coords + tmp
-    memmory[coords] = 1
-
-    coords = xc+y
-    coords = coords + offsetX
-    tmp = yc-x
-    tmp = tmp + offsetY
-    tmp = tmp << 8
-    coords = coords + tmp
-    memmory[coords] = 1
-
-    coords = xc-y
-    coords = coords + offsetX
-    tmp = yc-x
-    tmp = tmp + offsetY
-    tmp = tmp << 8
-    coords = coords + tmp
-    memmory[coords] = 1
+    resultDraw = resultDraw | getCoords(xc + x, yc + y)
+    resultDraw = resultDraw | getCoords(xc - x, yc + y)
+    resultDraw = resultDraw | getCoords(xc + x, yc - y)
+    resultDraw = resultDraw | getCoords(xc - x, yc + y)
+    resultDraw = resultDraw | getCoords(xc + y, yc + x)
+    resultDraw = resultDraw | getCoords(xc - y, yc + x)
+    resultDraw = resultDraw | getCoords(xc + y, yc - x)
+    resultDraw = resultDraw | getCoords(xc - y, yc - x)
 
 
 def circleBres(xc, yc, r):
@@ -118,6 +60,8 @@ def circleBres(xc, yc, r):
 
 
 def plotLine(x0, y0, x1, y1):
+    global resultDraw
+
     eval = x1-x0
     eval = absolute(eval)
     tmp = y1-y0
@@ -126,6 +70,7 @@ def plotLine(x0, y0, x1, y1):
         eval = 1
     else:
         eval = 0
+
     if not eval:
         tmp = x0
         x0 = y0
@@ -143,19 +88,15 @@ def plotLine(x0, y0, x1, y1):
     dif = dy - dx
     D = dy + dif
     y = y0
+    x = x0
 
-    for x in range(x0, x1+1):
+    tmp = x1 + 1
+    while x < tmp:
         if eval:
-            coords = x + offsetX
-            tmp = y + offsetY
-            tmp = tmp << 8
-            coords = coords + tmp
+            coords = getCoords(x, y)
         else:
-            coords = y + offsetX
-            tmp = x + offsetY
-            tmp = tmp << 8
-            coords = coords + tmp
-        memmory[coords] = 1
+            coords = getCoords(y, x)
+        resultDraw = resultDraw | coords
         if D > 0:
             y = y + yi
             D = D + dif
@@ -163,14 +104,19 @@ def plotLine(x0, y0, x1, y1):
         else:
             D = D + dy
             D = D + dy
+        x = x + 1
 
 
 def draw(char):
+    global resultDraw
+    resultDraw = 0
     if (char == 'A'):
         plotLine(0, 0, 4, 0)
         plotLine(0, 3, 4, 3)
         plotLine(0, 0, 0, 4)
         plotLine(4, 0, 4, 4)
+        # s = "{0:030b}".format(resultDraw)
+        # print('-'.join(s[i:i+5] for i in range(0, len(s), 5)))
     elif (char == 'B'):
         plotLine(0, 0, 3, 0)  # -
         plotLine(0, 2, 4, 2)  # -
@@ -238,43 +184,54 @@ def draw(char):
         plotLine(0, 4, 4, 4)  # -
         plotLine(0, 0, 4, 0)  # -
     elif (char == '1'):
-        circleBres(5, 5, 5)  # O
-        plotLine(0, 0, 10, 10)  # |
-        plotLine(10, 0, 10, 10)  # |
-        plotLine(5, 0, 5, 10)  # |
-        plotLine(0, 0, 0, 10)  # |
-        plotLine(0, 5, 10, 5)  # |
+        circleBres(2, 2, 2)  # O
+        plotLine(2, 0, 2, 1)  # |
+        plotLine(2, 3, 2, 4)  # |
+        plotLine(0, 2, 1, 2)  # |
+        plotLine(3, 2, 4, 2)  # |
+
+    memmory[offset] = resultDraw
 
 
-X_DIM = 2**8
-Y_DIM = 2**8
-SIZE = 6
-
-memmory = {x: 0 for x in range(X_DIM*Y_DIM)}
-
+memmory = {x: 0 for x in range(200)}
 file = open("test.txt")
-
 text = file.read()
+memmoryText = list(text)+[0]
 
-offsetX = 0
-offsetY = 0
-for c in text:
-    coords = draw(c)
-    offsetX = offsetX + SIZE
-    tmp = offsetX + SIZE
-    if tmp > X_DIM:
-        offsetX = 0
-        offsetY = offsetY + SIZE
+offset = 0
+resultDraw = 0
+i = 0
+while True:
+    if (memmoryText[i] == 0):
+        break
+    draw(memmoryText[i])
+    i = i + 1
+    offset = offset + 1
 
 
 # _________________________________/ALTO NIVEL/_________________________________
-im = Image.new('1', (X_DIM, Y_DIM))
-for posY in range(Y_DIM):
-    for posX in range(X_DIM):
-        if (memmory[posX+posY*X_DIM]):
+LINE_SIZE = 41
+LETTERS = 60
+LETTER_BITS = 32
+
+im = Image.new('1', (250, 250))
+offsetX = 0
+offsetY = 0
+for i in range(200):
+    bits = list("{:032b}".format(memmory[i]))
+    bits.reverse()
+    for j in range(32):
+        X = j % 5 + offsetX*6
+        Y = int(j/5) + offsetY*6
+        if (bits[j] == '1'):
             color = ImageColor.getcolor('white', '1')
         else:
             color = ImageColor.getcolor('black', '1')
-        im.putpixel((posX, posY), color)
+        #print((X, Y), color, (offsetX, offsetY))
+        im.putpixel((X, Y), color)
+    offsetX += 1
+    if offsetX >= LINE_SIZE:
+        offsetX = 0
+        offsetY += 1
 
 im.save('out.png')

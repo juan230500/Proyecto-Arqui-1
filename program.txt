@@ -1,0 +1,6 @@
+MOVI r0, 3
+branch2:
+MOVI r1, 6
+ADD  r2, r1, r1
+branch1:
+B branch2
